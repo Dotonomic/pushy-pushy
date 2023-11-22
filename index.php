@@ -54,14 +54,19 @@
 
 <body>
 <center>
-<br>
+    
+<br><br>
 <form id='needs-validation' method='post'>
 <!--LANGUAGE:<br>
-<input type='text' id='lang' name='lang' value=<?= $_SESSION['lang'] ?>></input><br><br>-->
+<input type='text' id='lang' name='lang' value=<?php //echo $_SESSION['lang']; ?>></input><br><br>-->
+<input type='hidden' name='newgame' value=''>
 <?php
-    if (isset($_POST['redo'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br><br>";
-    if (!isset($_SESSION['key']) || empty($_SESSION['key'])) echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""><br></strong><br><br>';
-    else echo '<button type="button"><a href="?remkey=yes">Remove API Key</a></button><br>';
+    if (empty($_SESSION['key'])) {
+        echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""><br></strong><br><br>';
+        unset($_POST['newgame']);
+    }
+    else echo '<button type="button"><a href="?remkey=yes">Remove API Key</a></button><br><br><br>';
+    if (!isset($_POST['newgame'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br>";
 ?>
 <div class='loader-container'><div class='loader'></div></div>
 </div>
@@ -98,36 +103,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 
     //if (empty($_POST['lang'])) $_POST['lang'] = 'English';
 
-    $prompt = "Fully implement ".$type." Be creative, try to come up with original and unique gameplay (this is very important). Make it as complex, as intricate and as sophisticated as you can. The game can neither be too easy to win nor too hard to lose, this is very important. ".$timed."Reply with a html document (complete with CSS styling) that includes game instructions for the user and a very creative title for the game. Include the option to reset/restart the game at any time, and also after winning or losing. You may use emojis, both in the instructions and in the game itself, but it is not mandatory. The code must be fully functional, you must implement all the features and not ommit any logic. The game must be playable both on computers and on mobile devices.";
+    $prompt = "Fully implement ".$type." Be creative, try to come up with original and unique gameplay (this is very important). The game can neither be too easy to win nor too hard to lose, this is very important. ".$timed."Reply with a html document (complete with CSS styling) that includes game instructions for the user and a very creative title for the game. Include the option to reset/restart the game at any time, and also after winning or losing. You may use emojis, both in the instructions and in the game itself, but it is not mandatory. The code must be fully functional, you must implement all the features and not ommit any logic. The game must be playable both on computers and on mobile devices.";
 
     require 'vendor/autoload.php';
     $userApiKey = $_SESSION['key'];
     $client = OpenAI::client($userApiKey); //https://github.com/openai-php/client
-
+    
     $messages = [['role' => 'system', 'content' => $prompt]];
 
     if (isset($_POST['redo'])) {
-        $prompt1 = "Examine the code included in the text and suggest both conceptual (game concept and gameplay) and functional improvements. Also, do you foresee any bugs (including visual bugs)? Explain very briefly. Text: ".$_SESSION['result']." Also, do you foresee any failure to fulfill the specifications? Explain very briefly. Specifications: ".$prompt;
+        $prompt1 = "Examine the code included in the text, do you foresee any bugs (including visual bugs)? Explain very briefly. Text: ".$_SESSION['result']." Also, do you foresee any failure to fulfill the specifications? Explain very briefly. Specifications: ".$prompt;
+        
+        try {    
+            $result1 = $client->chat()->create([
+                 'model' => 'gpt-4-1106-preview',
+                 'messages' => [['role' => 'system', 'content' => $prompt1]],
+	        ]);
+	        file_put_contents($_SESSION['path']."_EVAL.txt",$result1['choices'][0]['message']['content']);
     
-        $result1 = $client->chat()->create([
-             'model' => 'gpt-4-1106-preview',
-             'messages' => [['role' => 'system', 'content' => $prompt1]],
-	    ]);
-        file_put_contents($_SESSION['path']."_EVAL.txt",$result1['choices'][0]['message']['content']);
-    
-        $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];
-        $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$result1['choices'][0]['message']['content']];
-	      $buttonText = "MAKE IT BETTER";
+            $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];
+            $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$result1['choices'][0]['message']['content']];
+        } catch (Exception $e) {
+            echo $e;
+        }
+        
+	    $buttonText = "MAKE IT BETTER";
     }
     else $buttonText = "GO ON...";
 
     $path = 'games/'.date("Y-m-d H:i:s");
     
-    $result = $client->chat()->create([
+    try {
+        $result = $client->chat()->create([
              'model' => 'gpt-4-1106-preview',
              'messages' => $messages,
-    ]);
-    file_put_contents($path.".txt",$result['choices'][0]['message']['content']);
+        ]);
+        file_put_contents($path.".txt",$result['choices'][0]['message']['content']);
+    } catch (Exception $e) {
+        echo $e;
+    }
 	
     echo
     "
@@ -154,15 +168,15 @@ function showLoader(e){
 </html>
 ";
 
-    if (isset($_POST['redo'])) {
+    if (isset($_POST['redo']) and isset($result)) {
     	$content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);
     	$content = preg_replace("/```(.|\n)*/","",$content);
     	echo $content;
+    	$_SESSION['result'] = $result['choices'][0]['message']['content'];
     }
 
     $_SESSION['type'] = $type;
     $_SESSION['path'] = $path;
-    $_SESSION['result'] = $result['choices'][0]['message']['content'];
     //$_SESSION['lang'] = $_POST['lang'];
 }
 ?>

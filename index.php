@@ -69,7 +69,6 @@
     if (!isset($_POST['newgame'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br>";
 ?>
 <div class='loader-container'><div class='loader'></div></div>
-</div>
 </form><br><br>
 
 <script>
@@ -153,7 +152,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 <input type='hidden' name='redo' value=''>
 <button class='button' type='submit'>".$buttonText."</button>
 <div class='loader-container'><div class='loader'></div></div>
-</div>
 </form><br><br>
 
 <script>

@@ -11,14 +11,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* .container {
-  width: 100vw;
-}
-
-#needs-validation {
-  /* .loader-container will be positionned relative to this
-  position: relative;
-} */
 
 .loader-container {
   position: fixed;
@@ -27,20 +19,16 @@
   width: 100%;
   height: 100%;
   background: #C0C0C0;
-  /* hide it at first */
   display: none;
 }
 
 .loader {
   border: 16px solid #f3f3f3;
-  /* Light grey */
   border-top: 16px solid #3498db;
-  /* Blue */
   border-radius: 50%;
   width: 60px;
   height: 60px;
   animation: spin 1s linear infinite;
-  /* Add the following to center it */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -66,26 +54,7 @@
 
 <body>
 <center>
-
-<br><br><div id="donate-button-container">
-<div id="donate-button"></div>
-<script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
-<script>
-PayPal.Donation.Button({
-env:'production',
-hosted_button_id:'TL8ULSKMDVXPG',
-image: {
-src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
-alt:'Donate with PayPal button',
-title:'PayPal - The safer, easier way to pay online!',
-}
-}).render('#donate-button');
-</script>
-</div>
 <br>
-
-<br><div style="color: lime; background-color: black;">Website@PushyPushy.com</div><br>
-<br><br>
 <form id='needs-validation' method='post'>
 <!--LANGUAGE:<br>
 <input type='text' id='lang' name='lang' value=<?= $_SESSION['lang'] ?>></input><br><br>-->
@@ -132,13 +101,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     $prompt = "Fully implement ".$type." Be creative, try to come up with original and unique gameplay (this is very important). Make it as complex, as intricate and as sophisticated as you can. The game can neither be too easy to win nor too hard to lose, this is very important. ".$timed."Reply with a html document (complete with CSS styling) that includes game instructions for the user and a very creative title for the game. Include the option to reset/restart the game at any time, and also after winning or losing. You may use emojis, both in the instructions and in the game itself, but it is not mandatory. The code must be fully functional, you must implement all the features and not ommit any logic. The game must be playable both on computers and on mobile devices.";
 
     require 'vendor/autoload.php';
-    $yourApiKey = $_SESSION['key'];
-    $client = OpenAI::client($yourApiKey);
+    $userApiKey = $_SESSION['key'];
+    $client = OpenAI::client($userApiKey); //https://github.com/openai-php/client
 
     $messages = [['role' => 'system', 'content' => $prompt]];
 
-    if (isset($_POST['redo'])) {
-    
+    if (isset($_POST['redo'])) { //user requested improvement
         $prompt1 = "Examine the code included in the text, do you foresee any bugs (including visual bugs)? Explain very briefly. Text: ".$_SESSION['result']." Also, do you foresee any failure to fulfill the specifications? Explain very briefly. Specifications: ".$prompt;
     
         $result1 = $client->chat()->create([

@@ -170,9 +170,8 @@ function showLoader(e){
     	$content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);
     	$content = preg_replace("/```(.|\n)*/","",$content);
     	echo $content;
-    	$_SESSION['result'] = $result['choices'][0]['message']['content'];
     }
-
+    $_SESSION['result'] = $result['choices'][0]['message']['content'];
     $_SESSION['type'] = $type;
     $_SESSION['path'] = $path;
     //$_SESSION['lang'] = $_POST['lang'];

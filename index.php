@@ -58,8 +58,8 @@
 <form id='needs-validation' method='post'>
 <!--LANGUAGE:<br>
 <input type='text' id='lang' name='lang' value=<?= $_SESSION['lang'] ?>></input><br><br>-->
-<button class='button' type='submit'>CREATE A GAME</button><br><br><br>
 <?php
+    if (isset($_POST['redo'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br><br>";
     if (!isset($_SESSION['key']) || empty($_SESSION['key'])) echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""><br></strong><br><br>';
     else echo '<button type="button"><a href="?remkey=yes">Remove API Key</a></button><br>';
 ?>
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 
     $messages = [['role' => 'system', 'content' => $prompt]];
 
-    if (isset($_POST['redo'])) { //user requested improvement
+    if (isset($_POST['redo'])) {
         $prompt1 = "Examine the code included in the text, do you foresee any bugs (including visual bugs)? Explain very briefly. Text: ".$_SESSION['result']." Also, do you foresee any failure to fulfill the specifications? Explain very briefly. Specifications: ".$prompt;
     
         $result1 = $client->chat()->create([
@@ -117,7 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     
         $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];
         $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$result1['choices'][0]['message']['content']];
+	      $buttonText = "MAKE IT BETTER";
     }
+    else $buttonText = "GO ON...";
 
     $path = 'games/'.date("Y-m-d H:i:s");
     
@@ -126,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
              'messages' => $messages,
     ]);
     file_put_contents($path.".txt",$result['choices'][0]['message']['content']);
-
+	
     echo
     "
 <html>
@@ -135,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 <br><br>
 <form id='needs-validation2' method='post'>
 <input type='hidden' name='redo' value=''>
-<button class='button' type='submit'>MAKE IT BETTER</button>
+<button class='button' type='submit'>".$buttonText."</button>
 <div class='loader-container'><div class='loader'></div></div>
 </div>
 </form><br><br>
@@ -152,9 +154,11 @@ function showLoader(e){
 </html>
 ";
 
-    $content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);
-    $content = preg_replace("/```(.|\n)*/","",$content);
-    echo $content;
+    if (isset($_POST['redo'])) {
+    	$content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);
+    	$content = preg_replace("/```(.|\n)*/","",$content);
+    	echo $content;
+    }
 
     $_SESSION['type'] = $type;
     $_SESSION['path'] = $path;

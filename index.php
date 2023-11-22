@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     $messages = [['role' => 'system', 'content' => $prompt]];
 
     if (isset($_POST['redo'])) {
-        $prompt1 = "Examine the code included in the text, do you foresee any bugs (including visual bugs)? Explain very briefly. Text: ".$_SESSION['result']." Also, do you foresee any failure to fulfill the specifications? Explain very briefly. Specifications: ".$prompt;
+        $prompt1 = "Examine the code included in the text and suggest both conceptual (game concept and gameplay) and functional improvements. Also, do you foresee any bugs (including visual bugs)? Explain very briefly. Text: ".$_SESSION['result']." Also, do you foresee any failure to fulfill the specifications? Explain very briefly. Specifications: ".$prompt;
     
         $result1 = $client->chat()->create([
              'model' => 'gpt-4-1106-preview',

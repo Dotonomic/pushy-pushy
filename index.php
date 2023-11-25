@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 
     require 'vendor/autoload.php';
     $userApiKey = $_SESSION['key'];
-    $client = OpenAI::client($userApiKey); //https://github.com/openai-php/client
+    $client = OpenAI::client($userApiKey); // https://github.com/openai-php/client
     
     $messages = [['role' => 'system', 'content' => $prompt]];
 
@@ -118,17 +118,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
                  'model' => 'gpt-4-1106-preview',
                  'messages' => [['role' => 'system', 'content' => $prompt1]],
 	        ]);
-	        file_put_contents($_SESSION['path']."_EVAL.txt",$result1['choices'][0]['message']['content']);
+	        $feedback = $result1['choices'][0]['message']['content']."\n\n".$_POST['userFeedback'];
+	        file_put_contents($_SESSION['path']."_EVAL.txt",$feedback);
     
             $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];
-            $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$result1['choices'][0]['message']['content']];
+            $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$feedback];
         } catch (Exception $e) {
             echo $e;
         }
         
-	    $buttonText = "MAKE IT BETTER";
+	$buttonText = "MAKE IT BETTER";
+	$userFeedbackBox = "<br><br><strong style='font-size: 18px'>Optional feedback/suggestions:</strong><br><textarea name='userFeedback' id='userFeedback' rows='10' cols='40' maxlength='400' value=''></textarea>";
     }
-    else $buttonText = "GO ON...";
+    else {
+        $buttonText = "GO ON...";
+        $userFeedbackBox = "";
+    }
 
     $path = 'games/'.date("Y-m-d H:i:s");
     
@@ -150,8 +155,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 <br><br>
 <form id='needs-validation2' method='post'>
 <input type='hidden' name='redo' value=''>
-<button class='button' type='submit'>".$buttonText."</button>
-<div class='loader-container'><div class='loader'></div></div>
+<button class='button' type='submit'>".$buttonText."</button>"
+.$userFeedbackBox.
+"<div class='loader-container'><div class='loader'></div></div>
 </form><br><br>
 
 <script>

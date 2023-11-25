@@ -4,6 +4,13 @@
     //if (!isset($_SESSION['lang'])) $_SESSION['lang'] = 'English';
     if (isset($_POST['key'])) $_SESSION['key'] = $_POST['key'];
     if (isset($_GET['remkey'])) {unset($_SESSION['key']); header("Location: /"); exit();}
+    if (!isset($_SESSION['model'])) $_SESSION['model'] = "gpt-4-1106-preview";
+    if (isset($_GET['changemodel'])) {
+        if ($_SESSION['model'] == "gpt-4-1106-preview") $_SESSION['model'] = "gpt-3.5-turbo-1106";
+        else $_SESSION['model'] = "gpt-4-1106-preview";
+        header("Location: /");
+        exit();
+    }
 ?>
 <html>
 <head>
@@ -49,6 +56,13 @@
   font-size: 24px;
   cursor: pointer;
 }
+
+.button2 {
+  padding: 2px 2px;
+  text-align: center;
+  font-size: 17px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -65,7 +79,10 @@
         echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""><br></strong><br><br>';
         unset($_POST['newgame']);
     }
-    else echo '<button type="button"><a href="?remkey=yes">Remove API Key</a></button><br><br><br>';
+    else echo '<button class="button2" type="button"><a style="color: black; text-decoration: none;" href="?remkey=yes">REMOVE API KEY (and start over)</a></button><br><br><br>';
+?>
+<strong style="font-size: 20px">Model: <?= $_SESSION['model'] ?><br><button class="button2" type="button"><a style="color: black; text-decoration: none;" href="?changemodel=yes">CHANGE (and start over)</a></button></strong><br><br><br>
+<?php
     if (!isset($_POST['newgame'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br>";
 ?>
 <div class='loader-container'><div class='loader'></div></div>
@@ -183,3 +200,4 @@ function showLoader(e){
     //$_SESSION['lang'] = $_POST['lang'];
 }
 ?>
+<script>window.scrollTo(0, document.body.scrollHeight);</script>

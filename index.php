@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
                  'model' => 'gpt-4-1106-preview',
                  'messages' => [['role' => 'system', 'content' => $prompt1]],
 	        ]);
-	        $feedback = $result1['choices'][0]['message']['content']."\n\n".$_POST['userFeedback'];
+	        $feedback = $_POST['userFeedback']."\n\n".$result1['choices'][0]['message']['content'];
 	        file_put_contents($_SESSION['path']."_EVAL.txt",$feedback);
     
             $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];

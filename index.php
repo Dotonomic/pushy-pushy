@@ -76,7 +76,7 @@
 <input type='hidden' name='newgame' value=''>
 <?php
     if (empty($_SESSION['key'])) {
-        echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""><br></strong><br><br>';
+        echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
         unset($_POST['newgame']);
     }
     else echo '<button class="button2" type="button"><a style="color: black; text-decoration: none;" href="?remkey=yes">REMOVE API KEY (and start over)</a></button><br><br><br>';
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
         
         try {    
             $result1 = $client->chat()->create([
-                 'model' => 'gpt-4-1106-preview',
+                 'model' => $_SESSION['model'],
                  'messages' => [['role' => 'system', 'content' => $prompt1]],
 	        ]);
 	        $feedback = $_POST['userFeedback']."\n\n".$result1['choices'][0]['message']['content'];
@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     
     try {
         $result = $client->chat()->create([
-             'model' => 'gpt-4-1106-preview',
+             'model' => $_SESSION['model'],
              'messages' => $messages,
         ]);
         file_put_contents($path.".txt",$result['choices'][0]['message']['content']);

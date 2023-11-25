@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
         }
         
 	$buttonText = "MAKE IT BETTER";
-	$userFeedbackBox = "<br><br><strong style='font-size: 18px'>Optional feedback/suggestions:</strong><br><textarea name='userFeedback' id='userFeedback' rows='10' cols='40' maxlength='400' value=''></textarea>";
+	$userFeedbackBox = "<br><br><strong style='font-size: 18px'>Optional feedback/suggestions:</strong><br><textarea name='userFeedback' id='userFeedback' rows='3' cols='40' maxlength='400' value=''></textarea>";
     }
     else {
         $buttonText = "GO ON...";
@@ -200,4 +200,8 @@ function showLoader(e){
     //$_SESSION['lang'] = $_POST['lang'];
 }
 ?>
+<html>
+<body>
 <script>window.scrollTo(0, document.body.scrollHeight);</script>
+</body>
+</html>

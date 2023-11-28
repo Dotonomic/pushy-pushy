@@ -124,11 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     if (isset($_POST['redo'])) $type = $_SESSION['type']; //If creating new version of same game, no need to select game type
     else {
         switch (rand(0,6)) {
-            case 0 : $type = "a game in JavaScript"; break;
+            case 0 : $type = "a game in JavaScript."; break;
             case 1 : $type = "an action game in JavaScript."; break;
             case 2 : $type = "a puzzle game in JavaScript."; break;
-            case 3 : $type = "an adventure game in JavaScript"; break;
-            case 4 : $type = "a strategy game in JavaScript"; break;
+            case 3 : $type = "an adventure game in JavaScript."; break;
+            case 4 : $type = "a strategy game in JavaScript."; break;
             case 5 : $type = "in JavaScript a game somehow based on (or implementing) the concept of cellular automaton."; break;
             default : $type = "in JavaScript a game which takes place on a lattice or grid. The lattice/grid may or may not be infinite. Either a game of type 1 or type 2. Type 1: the user controls a character that can move within the lattice. You may also implement other character actions. Type 2: there is no character, the user is able to perform some action or actions.";
         }
@@ -140,14 +140,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     $prompt = "Fully implement ".$type." Be creative, try to come up with original and unique gameplay (this is very important). The game can neither be too easy to win nor too hard to lose, this is very important. ".$timed."Reply with a html document (complete with CSS styling) that includes game instructions for the user and a very creative title for the game. Include the option to reset/restart the game at any time, and also after winning or losing. You may use emojis, both in the instructions and in the game itself, but it is not mandatory. The code must be fully functional, you must implement all the features and not ommit any logic. The game must be playable both on computers and on mobile devices.";
     
     $messages = [['role' => 'system', 'content' => $prompt]]; //Initialize 'messages' array, the first message is the initial system prompt
+    //Path for text file to dump LLM reply (game code)
+    $path = 'games/'.date("Y-m-d H:i:s");
 
     require 'vendor/autoload.php';
     $userApiKey = $_SESSION['key'];
     $client = OpenAI::client($userApiKey); // https://github.com/openai-php/client
 
     if (isset($_POST['redo'])) { //Creating new version of same game
-        //System prompt to examine code and provide feedback
-        $prompt1 = "Examine the code included in the text, do you foresee any bugs (including visual bugs)? Explain very briefly. Text: ".$_SESSION['result']." Also, do you foresee any failure to fulfill the specifications? Explain very briefly. Specifications: ".$prompt;
+        //System prompt to examine code and provide feedback, this prompt includes user feedback (which may be empty)
+        $prompt1 = 'Examine the code included in the "TEXT", do you foresee any bugs (including visual bugs)? Explain very briefly. Also, do you foresee any failure to fulfill the "SPECIFICATIONS"? Explain very briefly. Taking into account the "USER FEEDBACK", if not empty. #TEXT: '.$_SESSION['result'].' | #SPECIFICATIONS: '.$prompt.' | #USER FEEDBACK: '.$_POST['userFeedback'];
         
         try { //Attempt to prompt LLM    
             $result1 = $client->chat()->create([
@@ -172,9 +174,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     else { //If creating new game, set different button text and set empty 'user feedback box' html
         $buttonText = "GO ON...";
         $userFeedbackBox = "";
+
+        if (rand(0,1)) { //System prompt asking LLM to conceptualize a game of the selected type
+            $prompt0 = "Suggest a creative, original, unique, and innovative game concept. Don't write any code, just ideas. The downstream goal will be to implement ".$type;
+            try { //Attempt to prompt LLM
+                $result = $client->chat()->create([
+                'model' => $_SESSION['model'],
+                'messages' => [['role' => 'system', 'content' => $prompt0]],
+                ]);
+                //Create text file with LLM game concept/suggestion
+                file_put_contents($path."_CONCEPT.txt",$result['choices'][0]['message']['content']);
+            } catch (Exception $e) { //Trim error message
+                $shortErrorMessage = preg_replace("~in \/home(.|\n)*~i","",$e);
+                //Store trimmed error message in session and start over
+                $_SESSION['shorterrormessage'] = $shortErrorMessage;
+                header("Location: /");
+                exit();
+            } //Add message with the LLM game concept/suggestion to the 'messages' array
+            $messages[] = ['role' => 'system', 'content' => $result['choices'][0]['message']['content']];
+        }
     }
-    //Path for text file to dump LLM reply (game code)
-    $path = 'games/'.date("Y-m-d H:i:s");
     
     try { //Attempt to prompt LLM with the 'messages' array
         $result = $client->chat()->create([
@@ -224,7 +243,7 @@ function showLoaderOrPreventSubmit(){ //Assign key typed in by user (possibly em
 </html>
 
 <?php
-    if (isset($result)) { //If there is reply (game code) from LLM, store it in session
+    if (isset($result)) { //If there is a reply (game code) from LLM, store it in session
         $_SESSION['result'] = $result['choices'][0]['message']['content'];
         if (isset($_POST['redo'])) { //and, if creating new version of same game, trim reply and serve game
     	    $content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);

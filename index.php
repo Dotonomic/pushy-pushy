@@ -183,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
         ]);
         //Dump to new text file
         file_put_contents($path.".txt",$result['choices'][0]['message']['content']);
-    } catch (Exception $e) { //Trimm error message
+    } catch (Exception $e) { //Trim error message
         $shortErrorMessage = preg_replace("~in \/home(.|\n)*~i","",$e);
         if (isset($_POST['newgame'])) { //If the button pushed was CREATE NEW GAME, store trimmed error message in session and start over
             $_SESSION['shorterrormessage'] = $shortErrorMessage;
@@ -205,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 </form><br><br>
 
 <script>
-function showLoaderOrPreventSubmit(){ //Set hidden value 'key' to submit equal to key typed in by user, if applicable
+function showLoaderOrPreventSubmit(){ //Assign key typed in by user (possibly empty) to hidden field 'key' in form
     var newkey = '';
     try {
         newkey = document.getElementById('key').value;
@@ -226,7 +226,7 @@ function showLoaderOrPreventSubmit(){ //Set hidden value 'key' to submit equal t
 <?php
     if (isset($result)) { //If there is reply (game code) from LLM, store it in session
         $_SESSION['result'] = $result['choices'][0]['message']['content'];
-        if (isset($_POST['redo'])) { //and, if creating new version of same game, trimm reply and serve game
+        if (isset($_POST['redo'])) { //and, if creating new version of same game, trim reply and serve game
     	    $content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);
     	    $content = preg_replace("/```(.|\n)*/","",$content);
     	    echo $content;

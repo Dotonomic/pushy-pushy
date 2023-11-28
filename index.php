@@ -61,12 +61,8 @@
 
 <body>
 <center>
-
-<br><br><div style="background-color: black;"><span style="color: lime;">Website@PushyPushy.com ||</span><span style="color: cyan;"> Pushy Pushy </span><span style="color: lime;">is part of </span><a style="color: yellow;" href="https://webaiapps.com" target="_blank">Web AI Apps</a></div>
-
-<br><br><br><a href="https://github.com/Dotonomic/pushy-pushy" target="_blank"><img src="github-mark.svg"></a>
-
-<br><br><br><br>
+    
+<br><br>
 <form id='needs-validation' method='post'>
 <input type='hidden' name='newgame' value=''>
 <div id="keycontainer">
@@ -81,9 +77,8 @@
 <strong style="font-size: 20px" id="modeldisplay"><?=$_SESSION['model']?></strong><br><button class="button2" type="button" onclick="changeModel()">CHANGE</button><br><br><br>
 <?php
     if (isset($_SESSION['shorterrormessage'])) {echo $_SESSION['shorterrormessage']."<br><br>"; unset($_SESSION['shorterrormessage']);}
-    if (!isset($_POST['newgame'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br>";
+    if (!isset($_POST['newgame'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br><div class='loader-container'><div class='loader'></div></div>";
 ?>
-<div class='loader-container'><div class='loader'></div></div>
 </form><br><br>
 
 <script>
@@ -161,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
             $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];
             $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$feedback];
         } catch (Exception $e) {
-            echo preg_replace("~in \/home(.|\n)*~i","",$e);
+            echo preg_replace("~in \/home(.|\n)*~i","",$e)."<br><br>";
         }
         
 	    $buttonText = "MAKE IT BETTER";
@@ -195,16 +190,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 <body>
 <center>
 <br><br>
-<form method='post' onsubmit='return showLoaderOrPreventSubmit()' name='form2'>
+<form method='post' onsubmit='return showLoaderOrPreventSubmit()'>
 <input type='hidden' name='redo' value=''>
-<input type='hidden' name='key' value=''>
+<input type='hidden' name='key' value='' id='newkey'>
 <button class='button' type='submit'><?=$buttonText?></button><?=$userFeedbackBox?><div class='loader-container'><div class='loader'></div></div>
 </form><br><br>
 
 <script>
 function showLoaderOrPreventSubmit(){
-    const newkey = document.getElementById('key').value;
-    document.form2.key.value = newkey;
+    var newkey = '';
+    try {
+        newkey = document.getElementById('key').value;
+    }
+    catch {
+    }
+    finally {
+        document.getElementById('newkey').value = newkey;
+    }
     if (key || newkey) {document.querySelector('.loader-container').style.display = 'block'; return true;}
     else return false;
 }
@@ -228,25 +230,6 @@ function showLoaderOrPreventSubmit(){
 ?>
 <html>
 <body>
-<center>
-<br><br>
-<div id="donate-button-container">
-<div id="donate-button"></div>
-<script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
-<script>
-PayPal.Donation.Button({
-env:'production',
-hosted_button_id:'TL8ULSKMDVXPG',
-image: {
-src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
-alt:'Donate with PayPal button',
-title:'PayPal - The safer, easier way to pay online!',
-}
-}).render('#donate-button');
-</script>
-</div>
-<br><br>
-</center>
 <script>window.scrollTo(0, document.body.scrollHeight);</script>
 </body>
 </html>

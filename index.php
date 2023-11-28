@@ -1,20 +1,13 @@
 <!DOCTYPE HTML>
 <?php
     session_start();
-    //if (!isset($_SESSION['lang'])) $_SESSION['lang'] = 'English';
-    if (isset($_POST['key'])) $_SESSION['key'] = $_POST['key'];
-    if (isset($_GET['remkey'])) {unset($_SESSION['key']); header("Location: /"); exit();}
+    if (!empty($_POST['key'])) $_SESSION['key'] = $_POST['key'];
     if (!isset($_SESSION['model'])) $_SESSION['model'] = "gpt-4-1106-preview";
-    if (isset($_GET['changemodel'])) {
-        if ($_SESSION['model'] == "gpt-4-1106-preview") $_SESSION['model'] = "gpt-3.5-turbo-1106";
-        else $_SESSION['model'] = "gpt-4-1106-preview";
-        header("Location: /");
-        exit();
-    }
+    if (isset($_SESSION['key'])) echo "<script>var key = true;</script>";
+    else echo "<script>var key = false;</script>";
 ?>
 <html>
 <head>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -68,31 +61,59 @@
 
 <body>
 <center>
-    
-<br><br>
+
+<br><br><div style="background-color: black;"><span style="color: lime;">Website@PushyPushy.com ||</span><span style="color: cyan;"> Pushy Pushy </span><span style="color: lime;">is part of </span><a style="color: yellow;" href="https://webaiapps.com" target="_blank">Web AI Apps</a></div>
+
+<br><br><br><a href="https://github.com/Dotonomic/pushy-pushy" target="_blank"><img src="github-mark.svg"></a>
+
+<br><br><br><br>
 <form id='needs-validation' method='post'>
-<!--LANGUAGE:<br>
-<input type='text' id='lang' name='lang' value=<?php //echo $_SESSION['lang']; ?>></input><br><br>-->
 <input type='hidden' name='newgame' value=''>
+<div id="keycontainer">
 <?php
     if (empty($_SESSION['key'])) {
         echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
         unset($_POST['newgame']);
     }
-    else echo '<button class="button2" type="button"><a style="color: black; text-decoration: none;" href="?remkey=yes">REMOVE API KEY (and start over)</a></button><br><br><br>';
+    else echo '<button class="button2" type="button" onclick="removeKey()">REMOVE API KEY</button><br><br><br>';
 ?>
-<strong style="font-size: 20px">Model: <?= $_SESSION['model'] ?><br><button class="button2" type="button"><a style="color: black; text-decoration: none;" href="?changemodel=yes">CHANGE (and start over)</a></button></strong><br><br><br>
+</div>
+<strong style="font-size: 20px" id="modeldisplay"><?=$_SESSION['model']?></strong><br><button class="button2" type="button" onclick="changeModel()">CHANGE</button><br><br><br>
 <?php
+    if (isset($_SESSION['shorterrormessage'])) {echo $_SESSION['shorterrormessage']."<br><br>"; unset($_SESSION['shorterrormessage']);}
     if (!isset($_POST['newgame'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br>";
 ?>
 <div class='loader-container'><div class='loader'></div></div>
 </form><br><br>
 
 <script>
+function removeKey(){
+    const xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+	    if (this.readyState == 4 && this.status == 200) {
+		    document.getElementById('keycontainer').innerHTML = '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
+		    key = false;
+	    }
+    };
+    xmlhttp.open('GET','removekey.php');
+    xmlhttp.send();
+}
+
+function changeModel(){
+    const xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+	    if (this.readyState == 4 && this.status == 200) {
+		    document.getElementById('modeldisplay').innerHTML = xmlhttp.responseText;
+	    }
+    };
+    xmlhttp.open('GET','changemodel.php');
+    xmlhttp.send();
+}
+
 var myForm = document.getElementById('needs-validation');
 myForm.addEventListener('submit', showLoader);
 function showLoader(e){
-  this.querySelector('.loader-container').style.display = 'block';
+    this.querySelector('.loader-container').style.display = 'block';
 }
 </script>
 </center>
@@ -101,6 +122,7 @@ function showLoader(e){
 
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
+    
     if (isset($_POST['redo'])) $type = $_SESSION['type'];
     else {
         switch (rand(0,6)) {
@@ -116,8 +138,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
 
     if (rand(0,1)) $timed = "Implement a time constraint and display the timer. ";
     else $timed = "";
-
-    //if (empty($_POST['lang'])) $_POST['lang'] = 'English';
 
     $prompt = "Fully implement ".$type." Be creative, try to come up with original and unique gameplay (this is very important). The game can neither be too easy to win nor too hard to lose, this is very important. ".$timed."Reply with a html document (complete with CSS styling) that includes game instructions for the user and a very creative title for the game. Include the option to reset/restart the game at any time, and also after winning or losing. You may use emojis, both in the instructions and in the game itself, but it is not mandatory. The code must be fully functional, you must implement all the features and not ommit any logic. The game must be playable both on computers and on mobile devices.";
 
@@ -141,11 +161,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
             $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];
             $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$feedback];
         } catch (Exception $e) {
-            echo $e;
+            echo preg_replace("~in \/home(.|\n)*~i","",$e);
         }
         
-	$buttonText = "MAKE IT BETTER";
-	$userFeedbackBox = "<br><br><strong style='font-size: 18px'>Optional feedback/suggestions:</strong><br><textarea name='userFeedback' id='userFeedback' rows='3' cols='40' maxlength='400' value=''></textarea>";
+	    $buttonText = "MAKE IT BETTER";
+	    $userFeedbackBox = "<br><br><strong style='font-size: 18px'>Optional feedback/suggestions:</strong><br><textarea name='userFeedback' rows='3' cols='40' maxlength='400' value=''></textarea>";
     }
     else {
         $buttonText = "GO ON...";
@@ -161,47 +181,72 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
         ]);
         file_put_contents($path.".txt",$result['choices'][0]['message']['content']);
     } catch (Exception $e) {
-        echo $e;
+        $shortErrorMessage = preg_replace("~in \/home(.|\n)*~i","",$e);
+        if (isset($_POST['newgame'])) {
+            $_SESSION['shorterrormessage'] = $shortErrorMessage;
+            header("Location: /");
+            exit();
+        }
+        echo $shortErrorMessage;
     }
-	
-    echo
-    "
+?>	
+
 <html>
 <body>
 <center>
 <br><br>
-<form id='needs-validation2' method='post'>
+<form method='post' onsubmit='return showLoaderOrPreventSubmit()' name='form2'>
 <input type='hidden' name='redo' value=''>
-<button class='button' type='submit'>".$buttonText."</button>"
-.$userFeedbackBox.
-"<div class='loader-container'><div class='loader'></div></div>
+<input type='hidden' name='key' value=''>
+<button class='button' type='submit'><?=$buttonText?></button><?=$userFeedbackBox?><div class='loader-container'><div class='loader'></div></div>
 </form><br><br>
 
 <script>
-var myForm = document.getElementById('needs-validation2');
-myForm.addEventListener('submit', showLoader);
-function showLoader(e){
-  this.querySelector('.loader-container').style.display = 'block';
+function showLoaderOrPreventSubmit(){
+    const newkey = document.getElementById('key').value;
+    document.form2.key.value = newkey;
+    if (key || newkey) {document.querySelector('.loader-container').style.display = 'block'; return true;}
+    else return false;
 }
 </script>
 </center>
 </body>
 </html>
-";
 
-    if (isset($_POST['redo']) and isset($result)) {
-    	$content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);
-    	$content = preg_replace("/```(.|\n)*/","",$content);
-    	echo $content;
+<?php
+    if (isset($result)) {
+        $_SESSION['result'] = $result['choices'][0]['message']['content'];
+        if (isset($_POST['redo'])) {
+    	    $content = preg_replace("/(.|\n)*```html/","",$result['choices'][0]['message']['content']);
+    	    $content = preg_replace("/```(.|\n)*/","",$content);
+    	    echo $content;
+        }
     }
-    $_SESSION['result'] = $result['choices'][0]['message']['content'];
-    $_SESSION['type'] = $type;
-    $_SESSION['path'] = $path;
-    //$_SESSION['lang'] = $_POST['lang'];
+    if (isset($type)) $_SESSION['type'] = $type;
+    if (isset($path)) $_SESSION['path'] = $path;
 }
 ?>
 <html>
 <body>
+<center>
+<br><br>
+<div id="donate-button-container">
+<div id="donate-button"></div>
+<script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+<script>
+PayPal.Donation.Button({
+env:'production',
+hosted_button_id:'TL8ULSKMDVXPG',
+image: {
+src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
+alt:'Donate with PayPal button',
+title:'PayPal - The safer, easier way to pay online!',
+}
+}).render('#donate-button');
+</script>
+</div>
+<br><br>
+</center>
 <script>window.scrollTo(0, document.body.scrollHeight);</script>
 </body>
 </html>

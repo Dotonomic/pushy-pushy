@@ -121,7 +121,10 @@ function showLoader(e){
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     
-    if (isset($_POST['redo'])) $type = $_SESSION['type']; //If creating new version of same game, no need to select game type
+    if (isset($_POST['redo'])) { //If creating new version of same game, preserve type and 'timed'
+        $type = $_SESSION['type'];
+        $timed = $_SESSION['timed'];
+    }
     else {
         switch (rand(0,6)) {
             case 0 : $type = "a game in JavaScript."; break;
@@ -132,10 +135,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
             case 5 : $type = "in JavaScript a game somehow based on (or implementing) the concept of cellular automaton."; break;
             default : $type = "in JavaScript a game which takes place on a lattice or grid. The lattice/grid may or may not be infinite. Either a game of type 1 or type 2. Type 1: the user controls a character that can move within the lattice. You may also implement other character actions. Type 2: there is no character, the user is able to perform some action or actions.";
         }
+        if (rand(0,1)) $timed = "Implement a time constraint and display the timer. ";
+        else $timed = "";
     }
-
-    if (rand(0,1)) $timed = "Implement a time constraint and display the timer. ";
-    else $timed = "";
     //Initial system prompt, containing subprompts 'type' and 'timed'
     $prompt = "Fully implement ".$type." Be creative, try to come up with original and unique gameplay (this is very important). The game can neither be too easy to win nor too hard to lose, this is very important. ".$timed."Reply with a html document (complete with CSS styling) that includes game instructions for the user and a very creative title for the game. Include the option to reset/restart the game at any time, and also after winning or losing. You may use emojis, both in the instructions and in the game itself, but it is not mandatory. The code must be fully functional, you must implement all the features and not ommit any logic. The game must be playable both on computers and on mobile devices.";
     
@@ -251,8 +253,9 @@ function showLoaderOrPreventSubmit(){ //Assign key typed in by user (possibly em
     	    echo $content;
         }
     }
-    if (isset($type)) $_SESSION['type'] = $type; //Store game type in session
-    if (isset($path)) $_SESSION['path'] = $path; //Store text file path
+    $_SESSION['type'] = $type; //Store game type in session
+    $_SESSION['timed'] = $timed; //Store the 'timed' parameter/subprompt
+    $_SESSION['path'] = $path; //Store text file path
 }
 ?>
 <html>

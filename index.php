@@ -3,7 +3,7 @@
     session_start();
     if (!empty($_POST['key'])) $_SESSION['key'] = $_POST['key']; //Store/update api key in session if it was entered 
     if (!isset($_SESSION['model'])) $_SESSION['model'] = "gpt-4-1106-preview"; //Default LLM model
-    if (isset($_SESSION['key'])) echo "<script>var key = true;</script>"; //Initialize JavaScript control variable 'key' to track presence of api key
+    if (isset($_SESSION['key'])) echo "<script>var key = true;</script>"; //Initialize JavaScript variable 'key' to track presence of api key
     else echo "<script>var key = false;</script>"; //api key not present
 ?>
 <html>
@@ -69,7 +69,7 @@
 <?php
     if (empty($_SESSION['key'])) { //Display input field for api key
         echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
-        unset($_POST['newgame']); //and unset variable that controls wether CREATE A GAME button was pushed
+        unset($_POST['newgame']); //and unset variable that tracks wether CREATE A GAME button was pushed
     } //Or else display 'remove api key' button
     else echo '<button class="button2" type="button" onclick="removeKey()">REMOVE API KEY</button><br><br><br>';
 ?>
@@ -90,7 +90,7 @@ function removeKey(){
     xmlhttp.onreadystatechange = function() {
 	    if (this.readyState == 4 && this.status == 200) { //Update 'key container' with input field for api key
 		    document.getElementById('keycontainer').innerHTML = '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
-		    key = false; //and update JavaScrip control variable 'key'
+		    key = false; //and update JavaScrip variable 'key' to indicate no key is present now
 	    }
     };
     xmlhttp.open('GET','removekey.php'); //Unsets session variable 'key'

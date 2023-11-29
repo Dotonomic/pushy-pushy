@@ -77,8 +77,8 @@
 <!--Display 'change model' button-->
 <strong style="font-size: 20px" id="modeldisplay"><?=$_SESSION['model']?></strong><br><button class="button2" type="button" onclick="changeModel()">CHANGE</button><br><br><br>
 <?php
-    //"Catch" error message if 'shorterrormessage' session variable is set, display it, and unset variable
-    if (isset($_SESSION['shorterrormessage'])) {echo $_SESSION['shorterrormessage']."<br><br>"; unset($_SESSION['shorterrormessage']);}
+    //"Catch" error message if 'errormessage' session variable is set, display it, and unset variable
+    if (isset($_SESSION['errormessage'])) {echo $_SESSION['errormessage']."<br><br>"; unset($_SESSION['errormessage']);}
     //Display CREATE A GAME button if it isn't set as pushed
     if (!isset($_POST['newgame'])) echo "<button class='button' type='submit'>CREATE A GAME</button><br><br><div class='loader-container'><div class='loader'></div></div>";
 ?>
@@ -166,8 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
             $messages[] = ['role' => 'assistant', 'content' => $_SESSION['result']];
             //Add message with system prompt to request new version based on the feedback 
             $messages[] = ['role' => 'system', 'content' => 'Make it better, even if the feedback is positive. Reply with the full new html document, do not abbreviate by referencing parts of the previous document. Feedback: '.$feedback];
-        } catch (Exception $e) { //Display trimmed error message
-            echo preg_replace("~in \/home(.|\n)*~i","",$e)."<br><br>";
+        } catch (Exception $e) { //Display error message
+            echo $e->getMessage()."<br><br>";
         }
         
 	    $buttonText = "MAKE IT BETTER"; //Set button text, set 'user feedback box' html 
@@ -186,10 +186,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
                 ]);
                 //Create text file with LLM game concept/suggestion
                 file_put_contents($path."_CONCEPT.txt",$result['choices'][0]['message']['content']);
-            } catch (Exception $e) { //Trim error message
-                $shortErrorMessage = preg_replace("~in \/home(.|\n)*~i","",$e);
-                //Store trimmed error message in session and start over
-                $_SESSION['shorterrormessage'] = $shortErrorMessage;
+            } catch (Exception $e) { //Store error message in session and start over
+                $_SESSION['errormessage'] = $e->getMessage();
                 header("Location: /");
                 exit();
             } //Add message with the LLM game concept/suggestion to the 'messages' array
@@ -204,14 +202,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
         ]);
         //Dump to new text file
         file_put_contents($path.".txt",$result['choices'][0]['message']['content']);
-    } catch (Exception $e) { //Trim error message
-        $shortErrorMessage = preg_replace("~in \/home(.|\n)*~i","",$e);
-        if (isset($_POST['newgame'])) { //If the button pushed was CREATE NEW GAME, store trimmed error message in session and start over
-            $_SESSION['shorterrormessage'] = $shortErrorMessage;
+    } catch (Exception $e) {
+        if (isset($_POST['newgame'])) { //If the button pushed was CREATE NEW GAME, store error message in session and start over
+            $_SESSION['errormessage'] = $e->getMessage();
             header("Location: /");
             exit();
-        } //if not, display trimmed error message
-        echo $shortErrorMessage;
+        } //if not, display error message
+        echo $e->getMessage();
     }
 ?>	
 

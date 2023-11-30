@@ -146,8 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     $path = 'games/'.date("Y-m-d H:i:s");
 
     require 'vendor/autoload.php';
-    $userApiKey = $_SESSION['key'];
-    $client = OpenAI::client($userApiKey); // https://github.com/openai-php/client
+    $client = OpenAI::client($_SESSION['key']); // https://github.com/openai-php/client
 
     if (isset($_POST['redo'])) { //Creating new version of same game
         //System prompt to examine code and provide feedback, this prompt includes user feedback (which may be empty)

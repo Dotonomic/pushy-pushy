@@ -67,10 +67,12 @@
 <input type='hidden' name='newgame' value=''>
 <div id="keycontainer">
 <?php
-    if (empty($_SESSION['key'])) { //Display input field for api key
+    if (empty($_SESSION['key'])) { //If api key is not stored in session or is empty,
+        //display input field for api key
         echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
-        unset($_POST['newgame']); //and unset variable that tracks wether CREATE A GAME button was pushed
-    } //Or else display 'remove api key' button
+        //and unset variable that tracks wether CREATE A GAME button was pushed
+        unset($_POST['newgame']);
+    } //Otherwise, display 'remove api key' button
     else echo '<button class="button2" type="button" onclick="removeKey()">REMOVE API KEY</button><br><br><br>';
 ?>
 </div>
@@ -88,23 +90,28 @@
 function removeKey(){
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
-	    if (this.readyState == 4 && this.status == 200) { //Update 'key container' with input field for api key
+	    if (this.readyState == 4 && this.status == 200) {
+            //Update 'key container' with input field for api key
 		    document.getElementById('keycontainer').innerHTML = '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
-		    key = false; //and update JavaScrip variable 'key' to indicate no key is present now
+		    //Update JavaScrip variable 'key' to indicate no key is present
+            key = false;
 	    }
     };
-    xmlhttp.open('GET','removekey.php'); //Unsets session variable 'key'
+    //Send request to PHP script that unsets session variable 'key'
+    xmlhttp.open('GET','removekey.php');
     xmlhttp.send();
 }
 
 function changeModel(){
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
-	    if (this.readyState == 4 && this.status == 200) { //Update model name displayed
+	    if (this.readyState == 4 && this.status == 200) {
+            //Update model name displayed
 		    document.getElementById('modeldisplay').innerHTML = xmlhttp.responseText;
 	    }
     };
-    xmlhttp.open('GET','changemodel.php'); //Toggles LLM model and returns model name
+    //Send request to PHP script that toggles LLM model and returns model name
+    xmlhttp.open('GET','changemodel.php');
     xmlhttp.send();
 }
 
@@ -121,7 +128,7 @@ function showLoader(e){
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST' & !empty($_SESSION['key'])) {
     
-    if (isset($_POST['redo'])) { //If creating new version of same game, preserve type and 'timed'
+    if (isset($_POST['redo'])) { //If creating new version of same game, preserve game type and 'timed'
         $type = $_SESSION['type'];
         $timed = $_SESSION['timed'];
     }

@@ -70,7 +70,7 @@
     if (empty($_SESSION['key'])) { //If api key is not stored in session or is empty,
         //display input field for api key
         echo '<strong style="font-size: 20px">OpenAI API Key<br><input type="text" name="key" id="key" value=""></strong><br><br><br>';
-        //and unset variable that tracks wether CREATE A GAME button was pushed
+        //and unset variable that tracks whether CREATE A GAME button was pushed
         unset($_POST['newgame']);
     } //Otherwise, display 'remove api key' button
     else echo '<button class="button2" type="button" onclick="removeKey()">REMOVE API KEY</button><br><br><br>';
